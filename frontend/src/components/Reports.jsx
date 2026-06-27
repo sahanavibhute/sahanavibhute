@@ -6,7 +6,8 @@ function Reports() {
     sales: [],
     productSales: [],
     stock: [],
-    purchases: []
+    purchases: [],
+    customers: []
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('sales'); // 'sales', 'products', 'stock', 'backup'
@@ -75,7 +76,7 @@ function Reports() {
 
   // Export Sales Report to CSV
   const handleExportSales = () => {
-    const headers = ['Bill Number', 'Sale Date', 'Customer Name', 'Customer Mobile', 'Discount Given', 'Total Revenue ($)', 'Payment Method', 'Payment Status'];
+    const headers = ['Bill Number', 'Sale Date', 'Customer Name', 'Customer Mobile', 'Discount Given', 'Total Revenue (₹)', 'Payment Method', 'Payment Status'];
     const rows = filteredSales.map(s => [
       s.bill_number,
       s.sale_date,
@@ -91,7 +92,7 @@ function Reports() {
 
   // Export Product Sales Report to CSV
   const handleExportProducts = () => {
-    const headers = ['Supplement Name', 'Brand', 'Category', 'Batch Number', 'Quantity Sold', 'Gross Revenue ($)', 'Net Profit ($)'];
+    const headers = ['Supplement Name', 'Brand', 'Category', 'Batch Number', 'Quantity Sold', 'Gross Revenue (₹)', 'Net Profit (₹)'];
     const rows = reportData.productSales.map(p => [
       p.name,
       p.brand,
@@ -106,7 +107,7 @@ function Reports() {
 
   // Export Stock Report to CSV
   const handleExportStock = () => {
-    const headers = ['Supplement Name', 'Brand', 'Category', 'Batch Number', 'Purchase Price ($)', 'Selling Price ($)', 'Current Stock Qty', 'Total Valuation Cost ($)', 'Total Potential Revenue ($)'];
+    const headers = ['Supplement Name', 'Brand', 'Category', 'Batch Number', 'Purchase Price (₹)', 'Selling Price (₹)', 'Current Stock Qty', 'Total Valuation Cost (₹)', 'Total Potential Revenue (₹)'];
     const rows = reportData.stock.map(p => [
       p.name,
       p.brand,
@@ -119,6 +120,20 @@ function Reports() {
       (p.selling_price * p.quantity).toFixed(2)
     ]);
     downloadCSV(headers, rows, 'Stock_Report');
+  };
+
+  // Export Customer Report to CSV
+  const handleExportCustomers = () => {
+    const headers = ['Customer Name', 'Customer Mobile', 'Total Orders Placed', 'Total Purchased Worth (₹)', 'Total Paid Amount (₹)', 'Pending Balance (₹)'];
+    const rows = (reportData.customers || []).map(c => [
+      c.customer_name || 'Walk-in Customer',
+      c.customer_mobile || 'N/A',
+      c.total_bills,
+      c.total_purchased.toFixed(2),
+      c.total_paid.toFixed(2),
+      (c.total_purchased - c.total_paid).toFixed(2)
+    ]);
+    downloadCSV(headers, rows, 'Customer_Ledger_Report');
   };
 
   // Printable layout trigger
@@ -207,6 +222,9 @@ function Reports() {
           <button className={`btn ${activeTab === 'stock' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('stock')} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
             Stock Valuation
           </button>
+          <button className={`btn ${activeTab === 'customers' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('customers')} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+            Customer Ledger
+          </button>
           <button className={`btn ${activeTab === 'backup' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('backup')} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
             <Database size={14} /> Backups
           </button>
@@ -230,7 +248,7 @@ function Reports() {
             </button>
             <button 
               className="btn btn-secondary" 
-              onClick={activeTab === 'sales' ? handleExportSales : activeTab === 'products' ? handleExportProducts : handleExportStock} 
+              onClick={activeTab === 'sales' ? handleExportSales : activeTab === 'products' ? handleExportProducts : activeTab === 'stock' ? handleExportStock : handleExportCustomers} 
               style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
             >
               <Download size={14} /> Export CSV
@@ -261,25 +279,25 @@ function Reports() {
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '1rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>GROSS REVENUE</span>
                     <h4 style={{ fontSize: '1.25rem', color: 'var(--secondary)', fontWeight: 800, marginTop: '0.25rem' }}>
-                      ${totalSalesRevenue.toFixed(2)}
+                      ₹{totalSalesRevenue.toFixed(2)}
                     </h4>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '1rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>INVENTORY PURCHASE COST</span>
                     <h4 style={{ fontSize: '1.25rem', color: '#6366f1', fontWeight: 800, marginTop: '0.25rem' }}>
-                      ${totalSalesCost.toFixed(2)}
+                      ₹{totalSalesCost.toFixed(2)}
                     </h4>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '1rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>NET PROFIT</span>
                     <h4 style={{ fontSize: '1.25rem', color: 'var(--primary)', fontWeight: 800, marginTop: '0.25rem' }}>
-                      ${totalNetProfit.toFixed(2)}
+                      ₹{totalNetProfit.toFixed(2)}
                     </h4>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '1rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>DISCOUNTS GIVEN</span>
                     <h4 style={{ fontSize: '1.25rem', color: 'var(--warning)', fontWeight: 800, marginTop: '0.25rem' }}>
-                      ${totalDiscounts.toFixed(2)}
+                      ₹{totalDiscounts.toFixed(2)}
                     </h4>
                   </div>
                 </div>
@@ -316,11 +334,11 @@ function Reports() {
                                   <div style={{ fontSize: '0.7rem', color: 'var(--text-dark)' }}>Mob: {s.customer_mobile}</div>
                                 </div>
                               </td>
-                              <td>${s.discount.toFixed(2)}</td>
-                              <td style={{ fontWeight: 600 }}>${s.total_amount.toFixed(2)}</td>
-                              <td>${(s.cost_price || 0).toFixed(2)}</td>
+                              <td>₹{s.discount.toFixed(2)}</td>
+                              <td style={{ fontWeight: 600 }}>₹{s.total_amount.toFixed(2)}</td>
+                              <td>₹{(s.cost_price || 0).toFixed(2)}</td>
                               <td style={{ fontWeight: 700, color: profit >= 0 ? 'var(--secondary)' : 'var(--danger)' }}>
-                                ${profit.toFixed(2)}
+                                ₹{profit.toFixed(2)}
                               </td>
                               <td>{s.payment_method}</td>
                               <td>
@@ -373,8 +391,8 @@ function Reports() {
                             <td>{p.category}</td>
                             <td><code>{p.batch_number}</code></td>
                             <td style={{ fontWeight: 700 }}>{p.total_qty} units</td>
-                            <td>${p.gross_revenue.toFixed(2)}</td>
-                            <td style={{ fontWeight: 700, color: 'var(--secondary)' }}>${p.net_profit.toFixed(2)}</td>
+                            <td>₹{p.gross_revenue.toFixed(2)}</td>
+                            <td style={{ fontWeight: 700, color: 'var(--secondary)' }}>₹{p.net_profit.toFixed(2)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -393,23 +411,23 @@ function Reports() {
                 </div>
 
                 {/* Stock totals summary */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }} className="no-print">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }} className="no-print">
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '1rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TOTAL STOCK INVENTORY COST</span>
                     <h4 style={{ fontSize: '1.25rem', color: '#6366f1', fontWeight: 800, marginTop: '0.25rem' }}>
-                      ${reportData.stock.reduce((sum, p) => sum + (p.purchase_price * p.quantity), 0).toFixed(2)}
+                      ₹{reportData.stock.reduce((sum, p) => sum + (p.purchase_price * p.quantity), 0).toFixed(2)}
                     </h4>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '1rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TOTAL POTENTIAL SELLING VALUE</span>
                     <h4 style={{ fontSize: '1.25rem', color: 'var(--secondary)', fontWeight: 800, marginTop: '0.25rem' }}>
-                      ${reportData.stock.reduce((sum, p) => sum + (p.selling_price * p.quantity), 0).toFixed(2)}
+                      ₹{reportData.stock.reduce((sum, p) => sum + (p.selling_price * p.quantity), 0).toFixed(2)}
                     </h4>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '1rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>POTENTIAL PROFIT</span>
                     <h4 style={{ fontSize: '1.25rem', color: 'var(--primary)', fontWeight: 800, marginTop: '0.25rem' }}>
-                      ${reportData.stock.reduce((sum, p) => sum + ((p.selling_price - p.purchase_price) * p.quantity), 0).toFixed(2)}
+                      ₹{reportData.stock.reduce((sum, p) => sum + ((p.selling_price - p.purchase_price) * p.quantity), 0).toFixed(2)}
                     </h4>
                   </div>
                 </div>
@@ -437,15 +455,66 @@ function Reports() {
                             <td style={{ fontWeight: 600, color: 'white' }}>{p.name}</td>
                             <td>{p.category}</td>
                             <td><code>{p.batch_number}</code></td>
-                            <td>${p.purchase_price.toFixed(2)}</td>
-                            <td>${p.selling_price.toFixed(2)}</td>
+                            <td>₹{p.purchase_price.toFixed(2)}</td>
+                            <td>₹{p.selling_price.toFixed(2)}</td>
                             <td style={{ fontWeight: 700 }}>{p.quantity} units</td>
-                            <td>${(p.purchase_price * p.quantity).toFixed(2)}</td>
+                            <td>₹{(p.purchase_price * p.quantity).toFixed(2)}</td>
                             <td style={{ fontWeight: 600, color: 'var(--secondary)' }}>
-                              ${(p.selling_price * p.quantity).toFixed(2)}
+                              ₹{(p.selling_price * p.quantity).toFixed(2)}
                             </td>
                           </tr>
                         ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 5. CUSTOMER LEDGER REPORT VIEW */}
+            {activeTab === 'customers' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
+                <div style={{ display: 'none', marginBottom: '1.5rem' }} className="print-title">
+                  <h2>Supplement Store - Customer Purchase Ledger</h2>
+                  <p>Generated on: {new Date().toLocaleDateString()}</p>
+                </div>
+
+                {(reportData.customers || []).length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>No customer history available.</div>
+                ) : (
+                  <div className="table-container" style={{ flex: 1 }}>
+                    <table className="custom-table" style={{ fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr>
+                          <th>Customer Details</th>
+                          <th>Total Orders</th>
+                          <th>Total Purchased Worth</th>
+                          <th>Total Paid</th>
+                          <th>Pending Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(reportData.customers || []).map((c, idx) => {
+                          const name = c.customer_name || 'Walk-in Customer';
+                          const mobile = c.customer_mobile || 'N/A';
+                          const balance = c.total_purchased - c.total_paid;
+                          return (
+                            <tr key={idx}>
+                              <td>
+                                <div>
+                                  <div style={{ fontWeight: 600, color: 'white' }}>{name}</div>
+                                  <div style={{ fontSize: '0.7rem', color: 'var(--text-dark)' }}>Mob: {mobile}</div>
+                                </div>
+                              </td>
+                              <td style={{ fontWeight: 700 }}>{c.total_bills} bills</td>
+                              <td>₹{c.total_purchased.toFixed(2)}</td>
+                              <td style={{ color: 'var(--secondary)' }}>₹{c.total_paid.toFixed(2)}</td>
+                              <td style={{ fontWeight: 700, color: balance > 0.01 ? 'var(--warning)' : 'var(--text-muted)' }}>
+                                ₹{balance.toFixed(2)}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

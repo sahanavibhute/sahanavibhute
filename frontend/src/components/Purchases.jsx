@@ -165,7 +165,7 @@ function Purchases({ onRefreshNotif }) {
           </div>
 
           <div className="form-group">
-            <label>Total Purchase Cost ($)</label>
+            <label>Total Purchase Cost (₹)</label>
             <input 
               type="number" 
               step="0.01" 
@@ -244,7 +244,7 @@ function Purchases({ onRefreshNotif }) {
                     </td>
                     <td style={{ fontWeight: 700 }}>{p.quantity}</td>
                     <td style={{ fontWeight: 600, color: 'var(--secondary)' }}>
-                      ${p.purchase_cost.toFixed(2)}
+                      ₹{p.purchase_cost.toFixed(2)}
                     </td>
                   </tr>
                 ))}

@@ -237,7 +237,7 @@ function Billing({ onRefreshNotif }) {
                   <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
                       <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--secondary)' }}>
-                        ${p.selling_price.toFixed(2)}
+                        ₹{p.selling_price.toFixed(2)}
                       </span>
                     </div>
                     <span 
@@ -320,7 +320,7 @@ function Billing({ onRefreshNotif }) {
 
                   <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, minWidth: '60px', display: 'inline-block' }}>
-                      ${(item.selling_price * item.quantity).toFixed(2)}
+                      ₹{(item.selling_price * item.quantity).toFixed(2)}
                     </span>
                     <button 
                       type="button" 
@@ -340,11 +340,11 @@ function Billing({ onRefreshNotif }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>₹{subtotal.toFixed(2)}</span>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            <span>Discount Amount ($)</span>
+            <span>Discount Amount (₹)</span>
             <input 
               type="number" 
               className="glass-input" 
@@ -357,7 +357,7 @@ function Billing({ onRefreshNotif }) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: 800, color: 'white', borderTop: '1px dashed var(--border-glass)', paddingTop: '0.75rem' }}>
             <span>Grand Total</span>
-            <span style={{ color: 'var(--secondary)' }}>${totalAmount.toFixed(2)}</span>
+            <span style={{ color: 'var(--secondary)' }}>₹{totalAmount.toFixed(2)}</span>
           </div>
         </div>
 
@@ -462,7 +462,7 @@ function Billing({ onRefreshNotif }) {
                         {item.product_name}
                       </span>
                       <span style={{ flex: 1, textAlign: 'center' }}>{item.quantity}</span>
-                      <span style={{ flex: 1, textAlign: 'right' }}>${(item.selling_price * item.quantity).toFixed(2)}</span>
+                      <span style={{ flex: 1, textAlign: 'right' }}>₹{(item.selling_price * item.quantity).toFixed(2)}</span>
                     </div>
                     <span style={{ fontSize: '0.65rem', color: '#666', display: 'block' }}>
                       Batch: {item.batch_number}
@@ -474,15 +474,15 @@ function Billing({ onRefreshNotif }) {
 
                 <div className="receipt-row">
                   <span>Subtotal:</span>
-                  <span>${(invoice.sale.total_amount + invoice.sale.discount).toFixed(2)}</span>
+                  <span>₹{(invoice.sale.total_amount + invoice.sale.discount).toFixed(2)}</span>
                 </div>
                 <div className="receipt-row">
                   <span>Discount:</span>
-                  <span>-${invoice.sale.discount.toFixed(2)}</span>
+                  <span>-₹{invoice.sale.discount.toFixed(2)}</span>
                 </div>
                 <div className="receipt-row" style={{ fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>
                   <span>Grand Total:</span>
-                  <span>${invoice.sale.total_amount.toFixed(2)}</span>
+                  <span>₹{invoice.sale.total_amount.toFixed(2)}</span>
                 </div>
 
                 <div className="receipt-divider"></div>

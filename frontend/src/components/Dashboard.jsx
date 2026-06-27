@@ -3,7 +3,7 @@ import {
   Package, 
   AlertTriangle, 
   Calendar, 
-  DollarSign, 
+  IndianRupee, 
   TrendingUp, 
   Clock, 
   ArrowRight,
@@ -88,16 +88,16 @@ function Dashboard({ setCurrentTab, onRefreshNotif }) {
     },
     { 
       title: "Today's Sales", 
-      value: `$${metrics.todaySales.toFixed(2)}`, 
+      value: `₹${metrics.todaySales.toFixed(2)}`, 
       desc: 'Total revenue logged today',
-      icon: DollarSign, 
+      icon: IndianRupee, 
       color: '#10b981', 
       bg: 'rgba(16, 185, 129, 0.1)',
       tab: 'reports'
     },
     { 
       title: 'Monthly Sales', 
-      value: `$${metrics.monthlySales.toFixed(2)}`, 
+      value: `₹${metrics.monthlySales.toFixed(2)}`, 
       desc: 'Total sales this month',
       icon: TrendingUp, 
       color: '#06b6d4', 
@@ -106,7 +106,7 @@ function Dashboard({ setCurrentTab, onRefreshNotif }) {
     },
     { 
       title: 'Pending Payments', 
-      value: `$${metrics.pendingPayments.toFixed(2)}`, 
+      value: `₹${metrics.pendingPayments.toFixed(2)}`, 
       desc: 'Awaiting credit collection',
       icon: Clock, 
       color: '#fb923c', 
@@ -165,7 +165,7 @@ function Dashboard({ setCurrentTab, onRefreshNotif }) {
                 <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: `${100 / chartData.length}%`, zIndex: 1 }}>
                   {/* Bar value tooltip */}
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>
-                    ${d.sales.toFixed(0)}
+                    ₹{d.sales.toFixed(0)}
                   </span>
                   
                   {/* Visual Bar */}

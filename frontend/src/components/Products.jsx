@@ -229,8 +229,8 @@ function Products({ onRefreshNotif }) {
                       </td>
                       <td><span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}>{p.category}</span></td>
                       <td><code style={{ fontSize: '0.85rem' }}>{p.batch_number}</code></td>
-                      <td>${p.purchase_price.toFixed(2)}</td>
-                      <td>${p.selling_price.toFixed(2)}</td>
+                      <td>₹{p.purchase_price.toFixed(2)}</td>
+                      <td>₹{p.selling_price.toFixed(2)}</td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <span style={{ fontWeight: 700, color: isLowStock ? 'var(--danger)' : 'white' }}>
@@ -304,12 +304,12 @@ function Products({ onRefreshNotif }) {
                 </div>
 
                 <div className="form-group">
-                  <label>Purchase Price ($)</label>
+                  <label>Purchase Price (₹)</label>
                   <input type="number" step="0.01" className="glass-input" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} required placeholder="Cost to buy" />
                 </div>
 
                 <div className="form-group">
-                  <label>Selling Price ($)</label>
+                  <label>Selling Price (₹)</label>
                   <input type="number" step="0.01" className="glass-input" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} required placeholder="Customer retail" />
                 </div>
 

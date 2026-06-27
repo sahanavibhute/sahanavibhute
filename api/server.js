@@ -515,7 +515,7 @@ app.get('/api/notifications', async (req, res) => {
         pendingAlerts.push({
           type: 'pending_payment',
           target_id: sale.id,
-          message: `Credit Sales: Bill ${sale.bill_number} for ${sale.customer_name} has a pending balance of $${balance.toFixed(2)}.`
+          message: `Credit Sales: Bill ${sale.bill_number} for ${sale.customer_name} has a pending balance of ₹${balance.toFixed(2)}.`
         });
       }
     }
@@ -651,11 +651,22 @@ app.get('/api/reports/all', async (req, res) => {
       ORDER BY pu.id DESC
     `);
 
+    const customerReport = await query.all(`
+      SELECT s.customer_name, s.customer_mobile,
+             COUNT(s.id) as total_bills,
+             SUM(s.total_amount) as total_purchased,
+             SUM(CASE WHEN s.payment_status = 'Paid' THEN s.total_amount ELSE (SELECT COALESCE(SUM(amount_paid), 0) FROM payments WHERE sale_id = s.id) END) as total_paid
+      FROM sales s
+      GROUP BY s.customer_name, s.customer_mobile
+      ORDER BY total_purchased DESC
+    `);
+
     res.json({
       sales: salesReport,
       productSales: productSalesReport,
       stock: stockReport,
-      purchases: purchaseReport
+      purchases: purchaseReport,
+      customers: customerReport
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

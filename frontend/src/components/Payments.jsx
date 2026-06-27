@@ -72,7 +72,7 @@ function Payments({ onRefreshNotif }) {
     }
 
     if (paidVal > selectedSale.balance_amount + 0.01) {
-      setModalError(`Amount exceeds the pending balance of $${selectedSale.balance_amount.toFixed(2)}`);
+      setModalError(`Amount exceeds the pending balance of ₹${selectedSale.balance_amount.toFixed(2)}`);
       return;
     }
 
@@ -203,10 +203,10 @@ function Payments({ onRefreshNotif }) {
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mob: {sale.customer_mobile}</div>
                         </div>
                       </td>
-                      <td>${sale.total_amount.toFixed(2)}</td>
-                      <td>${sale.paid_amount.toFixed(2)}</td>
+                      <td>₹{sale.total_amount.toFixed(2)}</td>
+                      <td>₹{sale.paid_amount.toFixed(2)}</td>
                       <td style={{ fontWeight: 700, color: sale.balance_amount > 0 ? 'var(--warning)' : 'var(--secondary)' }}>
-                        ${sale.balance_amount.toFixed(2)}
+                        ₹{sale.balance_amount.toFixed(2)}
                       </td>
                       <td>
                         <span className={`badge ${sale.payment_status === 'Paid' ? 'badge-paid' : 'badge-pending'}`}>
@@ -263,7 +263,7 @@ function Payments({ onRefreshNotif }) {
                       </td>
                       <td>{pay.payment_method}</td>
                       <td style={{ fontWeight: 700, color: 'var(--secondary)' }}>
-                        +${pay.amount_paid.toFixed(2)}
+                        +₹{pay.amount_paid.toFixed(2)}
                       </td>
                     </tr>
                   ))}
@@ -295,16 +295,16 @@ function Payments({ onRefreshNotif }) {
                   </div>
                   <div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-dark)' }}>INVOICE TOTAL</span>
-                    <h4 style={{ color: 'white' }}>${selectedSale.total_amount.toFixed(2)}</h4>
+                    <h4 style={{ color: 'white' }}>₹{selectedSale.total_amount.toFixed(2)}</h4>
                   </div>
                   <div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-dark)' }}>PENDING BALANCE</span>
-                    <h4 style={{ color: 'var(--warning)' }}>${selectedSale.balance_amount.toFixed(2)}</h4>
+                    <h4 style={{ color: 'var(--warning)' }}>₹{selectedSale.balance_amount.toFixed(2)}</h4>
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Amount Collected ($)</label>
+                  <label>Amount Collected (₹)</label>
                   <input 
                     type="number" 
                     step="0.01" 
