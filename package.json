@@ -1,0 +1,21 @@
+{
+  "name": "gym-supplement-inventory-billing-system",
+  "version": "1.0.0",
+  "description": "Offline Gym Supplement Inventory and Billing Management System",
+  "main": "main.js",
+  "type": "commonjs",
+  "scripts": {
+    "install:all": "npm install && npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "dev:backend": "cd backend && npm start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend": "cd frontend && npm run build",
+    "desktop": "electron ."
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^31.0.1"
+  }
+}
