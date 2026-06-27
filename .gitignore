@@ -1,7 +1,7 @@
 # Local Database files
 *.db
 *.db-journal
-backend/supplements.db
+api/supplements.db
 
 # Dependencies
 node_modules/

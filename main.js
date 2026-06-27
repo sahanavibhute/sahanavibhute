@@ -7,7 +7,7 @@ let backendProcess;
 
 function startBackend() {
   // Start Express API server as a background process
-  const backendPath = path.join(__dirname, 'backend', 'server.js');
+  const backendPath = path.join(__dirname, 'api', 'server.js');
   backendProcess = fork(backendPath, [], {
     env: { ...process.env, PORT: 5173, NODE_ENV: 'production' }
   });
