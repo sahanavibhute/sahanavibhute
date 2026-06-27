@@ -110,7 +110,8 @@ if (isPostgres) {
 } else {
   dbReady = new Promise(async (resolve) => {
     try {
-      const sqliteModule = await import('sqlite3');
+      const sqliteDriver = 'sqlite3';
+      const sqliteModule = await import(sqliteDriver);
       const sqlite3 = sqliteModule.default;
       db = new sqlite3.Database(dbPath, (err) => {
         if (err) {
