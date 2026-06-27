@@ -355,8 +355,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar-item:hover {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.04);
+  color: white;
+  background: var(--primary);
+  box-shadow: 0 4px 12px var(--primary-glow);
 }
 
 .sidebar-item.active {
