@@ -1,5 +1,4 @@
 import pg from 'pg';
-import path from 'url';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import bcrypt from 'bcryptjs';
