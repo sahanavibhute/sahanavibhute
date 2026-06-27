@@ -1,8 +1,11 @@
-import { query } from './db.js';
+import { query, dbReady } from './db.js';
 
 async function runSelfTest() {
   console.log('--- Database Verification Self-Test ---');
   try {
+    // Wait for DB migrations to complete
+    await dbReady;
+
     // 1. Check if admin table is seeded
     const admin = await query.get('SELECT id, security_question FROM admin WHERE id = 1');
     if (admin) {
@@ -54,5 +57,4 @@ async function runSelfTest() {
   }
 }
 
-// Small delay to ensure DB initialized first
-setTimeout(runSelfTest, 1000);
+runSelfTest();

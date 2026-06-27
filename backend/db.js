@@ -15,26 +15,6 @@ const isPostgres = !!process.env.DATABASE_URL;
 let db;
 let pool;
 
-if (isPostgres) {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false
-    }
-  });
-  console.log('Database connected using PostgreSQL (Cloud)');
-  initializeTables();
-} else {
-  db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-      console.error('Error opening SQLite database', err);
-    } else {
-      console.log('Database connected using SQLite (Local) at', dbPath);
-      initializeTables();
-    }
-  });
-}
-
 // Utility to translate standard ? SQL placeholders to Postgres $1, $2, ... placeholders
 function translateQuery(sql) {
   if (!isPostgres) return sql;
@@ -116,6 +96,32 @@ export const query = {
     }
   }
 };
+
+// Database connection logic (placed after query definition to avoid ReferenceError)
+export let dbReady;
+
+if (isPostgres) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+  console.log('Database connected using PostgreSQL (Cloud)');
+  dbReady = initializeTables();
+} else {
+  dbReady = new Promise((resolve) => {
+    db = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        console.error('Error opening SQLite database', err);
+        resolve();
+      } else {
+        console.log('Database connected using SQLite (Local) at', dbPath);
+        initializeTables().then(resolve);
+      }
+    });
+  });
+}
 
 async function initializeTables() {
   try {
