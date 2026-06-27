@@ -333,6 +333,32 @@ app.get('/api/purchases', async (req, res) => {
   }
 });
 
+// Delete a specific purchase log entry
+app.delete('/api/purchases/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await query.run('DELETE FROM purchases WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Purchase record deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete multiple purchase log entries
+app.post('/api/purchases/delete-multiple', async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Invalid or empty IDs array' });
+  }
+  try {
+    const placeholders = ids.map(() => '?').join(',');
+    await query.run(`DELETE FROM purchases WHERE id IN (${placeholders})`, ids);
+    res.json({ success: true, message: 'Purchase records deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==========================================
 // 5. CUSTOMER BILLING & SALES
 // ==========================================
@@ -431,6 +457,36 @@ app.get('/api/sales/:id', async (req, res) => {
   }
 });
 
+// Delete a specific sale (invoice) entry
+app.delete('/api/sales/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await query.run('DELETE FROM payments WHERE sale_id = ?', [id]);
+    await query.run('DELETE FROM sales_details WHERE sale_id = ?', [id]);
+    await query.run('DELETE FROM sales WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Invoice and associated records deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete multiple sales (invoices)
+app.post('/api/sales/delete-multiple', async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Invalid or empty IDs array' });
+  }
+  try {
+    const placeholders = ids.map(() => '?').join(',');
+    await query.run(`DELETE FROM payments WHERE sale_id IN (${placeholders})`, ids);
+    await query.run(`DELETE FROM sales_details WHERE sale_id IN (${placeholders})`, ids);
+    await query.run(`DELETE FROM sales WHERE id IN (${placeholders})`, ids);
+    res.json({ success: true, message: 'Invoices deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==========================================
 // 6. PAYMENT MANAGEMENT ENDPOINTS
 // ==========================================
@@ -478,6 +534,59 @@ app.post('/api/payments/record', async (req, res) => {
     }
 
     res.json({ success: true, message: 'Payment recorded successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a specific payment receipt
+app.delete('/api/payments/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const payment = await query.get('SELECT sale_id, amount_paid FROM payments WHERE id = ?', [id]);
+    if (payment) {
+      const { sale_id, amount_paid } = payment;
+      await query.run('DELETE FROM payments WHERE id = ?', [id]);
+      
+      const sale = await query.get('SELECT total_amount FROM sales WHERE id = ?', [sale_id]);
+      if (sale) {
+        const sumPaidRow = await query.get('SELECT SUM(amount_paid) as total_paid FROM payments WHERE sale_id = ?', [sale_id]);
+        const totalPaid = sumPaidRow.total_paid || 0;
+        const newBalance = sale.total_amount - totalPaid;
+        const newStatus = newBalance <= 0 ? 'Paid' : 'Pending';
+        await query.run('UPDATE sales SET payment_status = ? WHERE id = ?', [newStatus, sale_id]);
+      }
+    }
+    res.json({ success: true, message: 'Payment receipt deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete multiple payment receipts
+app.post('/api/payments/delete-multiple', async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Invalid or empty IDs array' });
+  }
+  try {
+    const placeholders = ids.map(() => '?').join(',');
+    const affectedSales = await query.all(`SELECT DISTINCT sale_id FROM payments WHERE id IN (${placeholders})`, ids);
+    
+    await query.run(`DELETE FROM payments WHERE id IN (${placeholders})`, ids);
+    
+    for (const row of affectedSales) {
+      const { sale_id } = row;
+      const sale = await query.get('SELECT total_amount FROM sales WHERE id = ?', [sale_id]);
+      if (sale) {
+        const sumPaidRow = await query.get('SELECT SUM(amount_paid) as total_paid FROM payments WHERE sale_id = ?', [sale_id]);
+        const totalPaid = sumPaidRow.total_paid || 0;
+        const newBalance = sale.total_amount - totalPaid;
+        const newStatus = newBalance <= 0 ? 'Paid' : 'Pending';
+        await query.run('UPDATE sales SET payment_status = ? WHERE id = ?', [newStatus, sale_id]);
+      }
+    }
+    res.json({ success: true, message: 'Payment receipts deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

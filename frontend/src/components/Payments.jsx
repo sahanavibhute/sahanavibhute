@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, DollarSign, Search, Plus, CheckCircle, Clock } from 'lucide-react';
+import { CreditCard, DollarSign, Search, Plus, CheckCircle, Clock, Trash2 } from 'lucide-react';
 
 function Payments({ onRefreshNotif }) {
   const [sales, setSales] = useState([]);
@@ -7,6 +7,8 @@ function Payments({ onRefreshNotif }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [viewTab, setViewTab] = useState('pending'); // 'pending' or 'paid' or 'history'
+  const [selectedSaleIds, setSelectedSaleIds] = useState([]);
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState([]);
 
   // Payment record modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -102,6 +104,124 @@ function Payments({ onRefreshNotif }) {
     }
   };
 
+  // Sale (Invoice) Selection & Deletion Helpers
+  const handleToggleSelectSale = (id) => {
+    if (selectedSaleIds.includes(id)) {
+      setSelectedSaleIds(selectedSaleIds.filter(item => item !== id));
+    } else {
+      setSelectedSaleIds([...selectedSaleIds, id]);
+    }
+  };
+
+  const handleSelectAllSales = (filteredItems) => {
+    const filteredIds = filteredItems.map(item => item.id);
+    const allSelected = filteredIds.every(id => selectedSaleIds.includes(id));
+    if (allSelected) {
+      setSelectedSaleIds(selectedSaleIds.filter(id => !filteredIds.includes(id)));
+    } else {
+      const newSelected = Array.from(new Set([...selectedSaleIds, ...filteredIds]));
+      setSelectedSaleIds(newSelected);
+    }
+  };
+
+  const handleDeleteSaleSpecific = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this invoice? This will also delete all associated payment receipts.')) return;
+    try {
+      const res = await fetch(`/api/sales/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSales(sales.filter(s => s.id !== id));
+        setSelectedSaleIds(selectedSaleIds.filter(item => item !== id));
+        onRefreshNotif();
+      } else {
+        alert('Failed to delete invoice');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteSaleMultiple = async (filteredItems) => {
+    const idsToDelete = selectedSaleIds.filter(id => filteredItems.some(item => item.id === id));
+    if (idsToDelete.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${idsToDelete.length} selected invoices? This will also delete all associated payment receipts.`)) return;
+    try {
+      const res = await fetch('/api/sales/delete-multiple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: idsToDelete })
+      });
+      if (res.ok) {
+        setSales(sales.filter(s => !idsToDelete.includes(s.id)));
+        setSelectedSaleIds(selectedSaleIds.filter(id => !idsToDelete.includes(id)));
+        onRefreshNotif();
+      } else {
+        alert('Failed to delete selected invoices');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Payment (Receipt) Selection & Deletion Helpers
+  const handleToggleSelectPayment = (id) => {
+    if (selectedPaymentIds.includes(id)) {
+      setSelectedPaymentIds(selectedPaymentIds.filter(item => item !== id));
+    } else {
+      setSelectedPaymentIds([...selectedPaymentIds, id]);
+    }
+  };
+
+  const handleSelectAllPayments = (filteredItems) => {
+    const filteredIds = filteredItems.map(item => item.id);
+    const allSelected = filteredIds.every(id => selectedPaymentIds.includes(id));
+    if (allSelected) {
+      setSelectedPaymentIds(selectedPaymentIds.filter(id => !filteredIds.includes(id)));
+    } else {
+      const newSelected = Array.from(new Set([...selectedPaymentIds, ...filteredIds]));
+      setSelectedPaymentIds(newSelected);
+    }
+  };
+
+  const handleDeletePaymentSpecific = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this payment receipt? This will adjust the invoice balance.')) return;
+    try {
+      const res = await fetch(`/api/payments/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setPayments(payments.filter(p => p.id !== id));
+        setSelectedPaymentIds(selectedPaymentIds.filter(item => item !== id));
+        fetchPaymentData();
+        onRefreshNotif();
+      } else {
+        alert('Failed to delete payment receipt');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeletePaymentMultiple = async (filteredItems) => {
+    const idsToDelete = selectedPaymentIds.filter(id => filteredItems.some(item => item.id === id));
+    if (idsToDelete.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${idsToDelete.length} selected payment receipts? This will adjust the invoice balances.`)) return;
+    try {
+      const res = await fetch('/api/payments/delete-multiple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: idsToDelete })
+      });
+      if (res.ok) {
+        setPayments(payments.filter(p => !idsToDelete.includes(p.id)));
+        setSelectedPaymentIds(selectedPaymentIds.filter(id => !idsToDelete.includes(id)));
+        fetchPaymentData();
+        onRefreshNotif();
+      } else {
+        alert('Failed to delete selected payment receipts');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Filters
   const filteredSales = sales.filter(s => {
     const matchesSearch = s.bill_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -170,6 +290,30 @@ function Payments({ onRefreshNotif }) {
 
       {/* Main content tables */}
       <div className="glass-card" style={{ flex: 1 }}>
+        {selectedSaleIds.length > 0 && viewTab !== 'history' && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+            <button 
+              className="btn btn-danger"
+              onClick={() => handleDeleteSaleMultiple(filteredSales)}
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <Trash2 size={14} /> Delete Selected Invoices ({selectedSaleIds.length})
+            </button>
+          </div>
+        )}
+        
+        {selectedPaymentIds.length > 0 && viewTab === 'history' && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+            <button 
+              className="btn btn-danger"
+              onClick={() => handleDeletePaymentMultiple(filteredHistory)}
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <Trash2 size={14} /> Delete Selected Receipts ({selectedPaymentIds.length})
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading payments directory...</div>
         ) : viewTab !== 'history' ? (
@@ -179,9 +323,17 @@ function Payments({ onRefreshNotif }) {
             </div>
           ) : (
             <div className="table-container">
-              <table className="custom-table">
+              <table className="custom-table" style={{ fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
+                    <th style={{ width: '40px', paddingLeft: '0.75rem' }}>
+                      <input 
+                        type="checkbox"
+                        checked={filteredSales.length > 0 && filteredSales.every(s => selectedSaleIds.includes(s.id))}
+                        onChange={() => handleSelectAllSales(filteredSales)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </th>
                     <th>Bill Number</th>
                     <th>Date</th>
                     <th>Customer details</th>
@@ -189,12 +341,20 @@ function Payments({ onRefreshNotif }) {
                     <th>Total Paid</th>
                     <th>Balance Due</th>
                     <th>Status</th>
-                    {viewTab === 'pending' && <th style={{ textAlign: 'right' }}>Action</th>}
+                    <th style={{ textAlign: 'right', paddingRight: '0.75rem' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredSales.map((sale) => (
-                    <tr key={sale.id}>
+                    <tr key={sale.id} className={selectedSaleIds.includes(sale.id) ? 'row-selected' : ''}>
+                      <td style={{ paddingLeft: '0.75rem' }}>
+                        <input 
+                          type="checkbox"
+                          checked={selectedSaleIds.includes(sale.id)}
+                          onChange={() => handleToggleSelectSale(sale.id)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                      </td>
                       <td style={{ fontWeight: 600, color: 'white' }}>{sale.bill_number}</td>
                       <td>{sale.sale_date}</td>
                       <td>
@@ -213,17 +373,28 @@ function Payments({ onRefreshNotif }) {
                           {sale.payment_status}
                         </span>
                       </td>
-                      {viewTab === 'pending' && (
-                        <td style={{ textAlign: 'right' }}>
+                      <td style={{ textAlign: 'right', paddingRight: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                          {sale.payment_status !== 'Paid' && (
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '0.35rem 0.7rem', fontSize: '0.75rem' }}
+                              onClick={() => openPaymentModal(sale)}
+                            >
+                              Collect Cash
+                            </button>
+                          )}
                           <button 
-                            className="btn btn-secondary" 
-                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
-                            onClick={() => openPaymentModal(sale)}
+                            type="button"
+                            onClick={() => handleDeleteSaleSpecific(sale.id)}
+                            style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'inline-flex', padding: '0.25rem', borderRadius: '4px' }}
+                            title="Delete Invoice"
+                            className="btn-action-delete"
                           >
-                            Collect Cash
+                            <Trash2 size={14} />
                           </button>
-                        </td>
-                      )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -238,20 +409,37 @@ function Payments({ onRefreshNotif }) {
             </div>
           ) : (
             <div className="table-container">
-              <table className="custom-table">
+              <table className="custom-table" style={{ fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
+                    <th style={{ width: '40px', paddingLeft: '0.75rem' }}>
+                      <input 
+                        type="checkbox"
+                        checked={filteredHistory.length > 0 && filteredHistory.every(p => selectedPaymentIds.includes(p.id))}
+                        onChange={() => handleSelectAllPayments(filteredHistory)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </th>
                     <th>Transaction ID</th>
                     <th>Bill Number</th>
                     <th>Payment Date</th>
                     <th>Customer</th>
                     <th>Payment Type</th>
                     <th>Amount Collected</th>
+                    <th style={{ textAlign: 'right', paddingRight: '0.75rem' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredHistory.map((pay) => (
-                    <tr key={pay.id}>
+                    <tr key={pay.id} className={selectedPaymentIds.includes(pay.id) ? 'row-selected' : ''}>
+                      <td style={{ paddingLeft: '0.75rem' }}>
+                        <input 
+                          type="checkbox"
+                          checked={selectedPaymentIds.includes(pay.id)}
+                          onChange={() => handleToggleSelectPayment(pay.id)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                      </td>
                       <td><code>TRX-{String(pay.id).padStart(5, '0')}</code></td>
                       <td style={{ fontWeight: 600, color: 'white' }}>{pay.bill_number}</td>
                       <td>{pay.payment_date}</td>
@@ -264,6 +452,17 @@ function Payments({ onRefreshNotif }) {
                       <td>{pay.payment_method}</td>
                       <td style={{ fontWeight: 700, color: 'var(--secondary)' }}>
                         +₹{pay.amount_paid.toFixed(2)}
+                      </td>
+                      <td style={{ textAlign: 'right', paddingRight: '0.75rem' }}>
+                        <button 
+                          type="button"
+                          onClick={() => handleDeletePaymentSpecific(pay.id)}
+                          style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'inline-flex', padding: '0.25rem', borderRadius: '4px' }}
+                          title="Delete Receipt"
+                          className="btn-action-delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </td>
                     </tr>
                   ))}

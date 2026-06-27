@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Plus, Calendar } from 'lucide-react';
+import { ShoppingBag, Search, Plus, Calendar, Trash2 } from 'lucide-react';
 
 function Purchases({ onRefreshNotif }) {
   const [purchases, setPurchases] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState([]);
 
   // Form states
   const [billNumber, setBillNumber] = useState('');
@@ -80,6 +81,60 @@ function Purchases({ onRefreshNotif }) {
       }
     } catch (err) {
       setFormError('Could not connect to offline database');
+    }
+  };
+
+  const handleToggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(item => item !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleSelectAll = (filteredItems) => {
+    const filteredIds = filteredItems.map(item => item.id);
+    const allSelected = filteredIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(selectedIds.filter(id => !filteredIds.includes(id)));
+    } else {
+      const newSelected = Array.from(new Set([...selectedIds, ...filteredIds]));
+      setSelectedIds(newSelected);
+    }
+  };
+
+  const handleDeleteSpecific = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this purchase order record?')) return;
+    try {
+      const res = await fetch(`/api/purchases/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setPurchases(purchases.filter(p => p.id !== id));
+        setSelectedIds(selectedIds.filter(item => item !== id));
+      } else {
+        alert('Failed to delete purchase record');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteMultiple = async () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected purchase records?`)) return;
+    try {
+      const res = await fetch('/api/purchases/delete-multiple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds })
+      });
+      if (res.ok) {
+        setPurchases(purchases.filter(p => !selectedIds.includes(p.id)));
+        setSelectedIds([]);
+      } else {
+        alert('Failed to delete selected entries');
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -193,21 +248,33 @@ function Purchases({ onRefreshNotif }) {
 
       {/* Purchase History Ledger */}
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Purchase Orders Ledger</h3>
           
-          <div style={{ position: 'relative', width: '220px' }}>
-            <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dark)' }}>
-              <Search size={16} />
-            </span>
-            <input 
-              type="text" 
-              className="glass-input" 
-              placeholder="Search purchases..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ paddingLeft: '2.2rem', paddingTop: '0.45rem', paddingBottom: '0.45rem', fontSize: '0.85rem', width: '100%' }}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {selectedIds.length > 0 && (
+              <button 
+                className="btn btn-danger"
+                onClick={handleDeleteMultiple}
+                style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+              >
+                <Trash2 size={14} /> Delete Selected ({selectedIds.length})
+              </button>
+            )}
+            
+            <div style={{ position: 'relative', width: '200px' }}>
+              <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dark)' }}>
+                <Search size={16} />
+              </span>
+              <input 
+                type="text" 
+                className="glass-input" 
+                placeholder="Search purchases..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ paddingLeft: '2.2rem', paddingTop: '0.45rem', paddingBottom: '0.45rem', fontSize: '0.85rem', width: '100%' }}
+              />
+            </div>
           </div>
         </div>
 
@@ -222,17 +289,34 @@ function Purchases({ onRefreshNotif }) {
             <table className="custom-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr>
+                  <th style={{ width: '40px', paddingLeft: '0.75rem' }}>
+                    <input 
+                      type="checkbox"
+                      checked={filteredPurchases.length > 0 && filteredPurchases.every(p => selectedIds.includes(p.id))}
+                      onChange={() => handleSelectAll(filteredPurchases)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </th>
                   <th>Bill Number</th>
                   <th>Date</th>
                   <th>Supplier</th>
                   <th>Product</th>
                   <th>Qty</th>
                   <th>Total Cost</th>
+                  <th style={{ textAlign: 'right', paddingRight: '0.75rem' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredPurchases.map((p) => (
-                  <tr key={p.id}>
+                  <tr key={p.id} className={selectedIds.includes(p.id) ? 'row-selected' : ''}>
+                    <td style={{ paddingLeft: '0.75rem' }}>
+                      <input 
+                        type="checkbox"
+                        checked={selectedIds.includes(p.id)}
+                        onChange={() => handleToggleSelect(p.id)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </td>
                     <td style={{ fontWeight: 600, color: 'white' }}>{p.purchase_bill_number}</td>
                     <td>{p.purchase_date}</td>
                     <td>{p.supplier_name}</td>
@@ -245,6 +329,17 @@ function Purchases({ onRefreshNotif }) {
                     <td style={{ fontWeight: 700 }}>{p.quantity}</td>
                     <td style={{ fontWeight: 600, color: 'var(--secondary)' }}>
                       ₹{p.purchase_cost.toFixed(2)}
+                    </td>
+                    <td style={{ textAlign: 'right', paddingRight: '0.75rem' }}>
+                      <button 
+                        type="button"
+                        onClick={() => handleDeleteSpecific(p.id)}
+                        style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'inline-flex', padding: '0.25rem', borderRadius: '4px' }}
+                        title="Delete Purchase"
+                        className="btn-action-delete"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </td>
                   </tr>
                 ))}
