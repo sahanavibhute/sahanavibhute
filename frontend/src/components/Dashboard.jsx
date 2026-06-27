@@ -261,7 +261,7 @@ function Dashboard({ setCurrentTab, onRefreshNotif }) {
                     <td style={{ fontWeight: 600, color: 'white' }}>{tx.bill_number}</td>
                     <td>{tx.customer_name}</td>
                     <td>{tx.sale_date}</td>
-                    <td>${tx.total_amount.toFixed(2)}</td>
+                    <td>₹{tx.total_amount.toFixed(2)}</td>
                     <td>{tx.payment_method}</td>
                     <td>
                       <span className={`badge ${tx.payment_status === 'Paid' ? 'badge-paid' : 'badge-pending'}`}>
