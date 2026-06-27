@@ -12,6 +12,7 @@
     "dev:frontend": "cd frontend && npm run dev",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build:frontend": "cd frontend && npm run build && cd .. && node -e \"const fs = require('fs'); fs.cpSync('frontend/dist', 'dist', {recursive: true});\"",
+    "vercel-build": "npm run build:frontend",
     "desktop": "electron ."
   },
   "devDependencies": {
