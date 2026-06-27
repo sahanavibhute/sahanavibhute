@@ -146,7 +146,7 @@ function Dashboard({ setCurrentTab, onRefreshNotif }) {
       </div>
 
       {/* Charts & Details Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '1.5rem' }}>
+      <div className="grid-split-layout">
         {/* Sales Chart (SVG representation) */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '400px' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

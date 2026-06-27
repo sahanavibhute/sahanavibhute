@@ -276,7 +276,7 @@ function Products({ onRefreshNotif }) {
               <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit}>
-              <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+              <div className="modal-body modal-grid-2cols">
                 
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
                   <label>Product Name</label>

@@ -12,7 +12,8 @@ import {
   LogOut, 
   Bell, 
   X,
-  Settings
+  Settings,
+  Menu
 } from 'lucide-react';
 
 import Dashboard from './components/Dashboard';
@@ -29,6 +30,7 @@ function App() {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [notifications, setNotifications] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Auth Form states
   const [password, setPassword] = useState('');
@@ -370,21 +372,30 @@ function App() {
       <div className="glow-bg-2"></div>
 
       {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header" style={{ position: 'relative' }}>
           <div className="sidebar-logo">
             <Package size={22} style={{ color: 'var(--primary)' }} />
             <span>Supplement OS</span>
           </div>
+          <button 
+            className="sidebar-close-btn"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={18} />
+          </button>
         </div>
-
+ 
         <nav className="sidebar-menu">
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
-                onClick={() => setCurrentTab(item.id)}
+                onClick={() => {
+                  setCurrentTab(item.id);
+                  setIsSidebarOpen(false);
+                }}
                 className={`sidebar-item ${currentTab === item.id ? 'active' : ''}`}
               >
                 <Icon size={18} />
@@ -393,10 +404,13 @@ function App() {
             );
           })}
         </nav>
-
+ 
         <div className="sidebar-footer">
           <button 
-            onClick={() => setIsSecurityConfigOpen(true)}
+            onClick={() => {
+              setIsSecurityConfigOpen(true);
+              setIsSidebarOpen(false);
+            }}
             className="sidebar-item" 
             style={{ width: '100%', border: 'none', background: 'none' }}
           >
@@ -405,7 +419,10 @@ function App() {
           </button>
           
           <button 
-            onClick={() => setIsChangePassOpen(true)}
+            onClick={() => {
+              setIsChangePassOpen(true);
+              setIsSidebarOpen(false);
+            }}
             className="sidebar-item" 
             style={{ width: '100%', border: 'none', background: 'none' }}
           >
@@ -414,7 +431,10 @@ function App() {
           </button>
           
           <button 
-            onClick={handleLogout} 
+            onClick={() => {
+              handleLogout();
+              setIsSidebarOpen(false);
+            }}
             className="sidebar-item" 
             style={{ width: '100%', border: 'none', background: 'none', color: 'var(--danger)' }}
           >
@@ -423,18 +443,26 @@ function App() {
           </button>
         </div>
       </aside>
-
+ 
       {/* Main Panel */}
       <main className="main-content">
         {/* Top Header */}
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-glass)' }}>
-          <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, textTransform: 'capitalize' }}>
-              {currentTab.replace('-', ' ')}
-            </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Gym Supplement Inventory & Billing Manager</p>
+        <header className="main-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-glass)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button 
+              className="mobile-menu-btn"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, textTransform: 'capitalize' }}>
+                {currentTab.replace('-', ' ')}
+              </h1>
+              <p className="header-subtitle" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Gym Supplement Inventory & Billing Manager</p>
+            </div>
           </div>
-
+ 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {/* Alerts Bell Button */}
             <button 

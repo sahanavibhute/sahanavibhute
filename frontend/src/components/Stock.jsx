@@ -84,7 +84,7 @@ function Stock() {
   );
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '1.5rem', flex: 1 }}>
+    <div className="grid-split-layout">
       
       {/* Manual Stock Adjustments Card */}
       <div className="glass-card" style={{ alignSelf: 'flex-start' }}>

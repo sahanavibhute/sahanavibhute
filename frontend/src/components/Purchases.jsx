@@ -90,7 +90,7 @@ function Purchases({ onRefreshNotif }) {
   );
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1.75fr', gap: '1.5rem', flex: 1 }}>
+    <div className="grid-split-layout">
       
       {/* Add New Purchase Form */}
       <div className="glass-card" style={{ alignSelf: 'flex-start' }}>
