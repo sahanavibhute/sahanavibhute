@@ -266,7 +266,7 @@ function Billing({ onRefreshNotif }) {
             <input 
               type="text" 
               className="glass-input" 
-              placeholder="e.g. John Doe"
+              placeholder="Enter your name"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)} 
             />
@@ -276,7 +276,7 @@ function Billing({ onRefreshNotif }) {
             <input 
               type="text" 
               className="glass-input" 
-              placeholder="e.g. 9876543210"
+              placeholder="Enter your number"
               value={customerMobile}
               onChange={(e) => setCustomerMobile(e.target.value)} 
             />
