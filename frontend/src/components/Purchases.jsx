@@ -218,7 +218,7 @@ function Purchases({ onRefreshNotif }) {
             No purchase records found in database.
           </div>
         ) : (
-          <div className="table-container" style={{ flex: 1 }}>
+          <div className="table-container" style={{ flex: 1, overflowY: 'auto', maxHeight: '480px' }}>
             <table className="custom-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr>
