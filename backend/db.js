@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 const dbPath = dirname(__filename) + '/supplements.db';
 
 const { Pool } = pg;
-const isPostgres = !!process.env.DATABASE_URL;
+const isPostgres = !!process.env.DATABASE_URL || !!process.env.VERCEL;
 
 let db;
 let pool;
@@ -99,11 +99,17 @@ export const query = {
 export let dbReady;
 
 if (isPostgres) {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is missing on Vercel!');
+  }
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
       rejectUnauthorized: false
     }
+  });
+  pool.on('error', (err) => {
+    console.error('Unexpected error on idle pg client', err);
   });
   console.log('Database connected using PostgreSQL (Cloud)');
   dbReady = initializeTables();
