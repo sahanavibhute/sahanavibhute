@@ -177,7 +177,7 @@ function Billing({ onRefreshNotif }) {
     <div className="billing-grid">
       
       {/* Left side: Product Search Catalog */}
-      <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '550px' }}>
+      <div className="glass-card billing-catalog-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Choose Supplements</h3>
           
@@ -254,7 +254,7 @@ function Billing({ onRefreshNotif }) {
       </div>
 
       {/* Right side: Shopping Cart & Billing Form */}
-      <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="glass-card billing-cart-card">
         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <ShoppingCart size={18} style={{ color: 'var(--primary)' }} /> Customer Cart
         </h3>

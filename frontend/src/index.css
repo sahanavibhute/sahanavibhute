@@ -490,6 +490,29 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+.billing-catalog-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 550px;
+}
+
+.billing-cart-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+@media (max-width: 1024px) {
+  .billing-catalog-card {
+    min-height: auto;
+    height: 520px;
+  }
+  .billing-cart-card {
+    height: auto;
+  }
+}
+
 .cart-items-container {
   display: flex;
   flex-direction: column;
