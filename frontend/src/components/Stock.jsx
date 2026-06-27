@@ -6,6 +6,7 @@ function Stock() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   // Form states
   const [selectedProductId, setSelectedProductId] = useState('');
@@ -74,6 +75,60 @@ function Stock() {
       }
     } catch (err) {
       setFormError('Connection error to offline database');
+    }
+  };
+
+  const handleToggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(item => item !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleSelectAll = (filteredItems) => {
+    const filteredIds = filteredItems.map(item => item.id);
+    const allSelected = filteredIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(selectedIds.filter(id => !filteredIds.includes(id)));
+    } else {
+      const newSelected = Array.from(new Set([...selectedIds, ...filteredIds]));
+      setSelectedIds(newSelected);
+    }
+  };
+
+  const handleDeleteSpecific = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this stock history log?')) return;
+    try {
+      const res = await fetch(`/api/stock/history/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setHistory(history.filter(h => h.id !== id));
+        setSelectedIds(selectedIds.filter(item => item !== id));
+      } else {
+        alert('Failed to delete stock history entry');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteMultiple = async () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected stock history logs?`)) return;
+    try {
+      const res = await fetch('/api/stock/history/delete-multiple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds })
+      });
+      if (res.ok) {
+        setHistory(history.filter(h => !selectedIds.includes(h.id)));
+        setSelectedIds([]);
+      } else {
+        alert('Failed to delete selected entries');
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -176,21 +231,33 @@ function Stock() {
 
       {/* Stock Ledger History Card */}
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Stock History Ledger</h3>
           
-          <div style={{ position: 'relative', width: '220px' }}>
-            <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dark)' }}>
-              <Search size={16} />
-            </span>
-            <input 
-              type="text" 
-              className="glass-input" 
-              placeholder="Search ledger..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ paddingLeft: '2.2rem', paddingTop: '0.45rem', paddingBottom: '0.45rem', fontSize: '0.85rem', width: '100%' }}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {selectedIds.length > 0 && (
+              <button 
+                className="btn btn-danger"
+                onClick={handleDeleteMultiple}
+                style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+              >
+                <Trash2 size={14} /> Delete Selected ({selectedIds.length})
+              </button>
+            )}
+            
+            <div style={{ position: 'relative', width: '200px' }}>
+              <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dark)' }}>
+                <Search size={16} />
+              </span>
+              <input 
+                type="text" 
+                className="glass-input" 
+                placeholder="Search ledger..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ paddingLeft: '2.2rem', paddingTop: '0.45rem', paddingBottom: '0.45rem', fontSize: '0.85rem', width: '100%' }}
+              />
+            </div>
           </div>
         </div>
 
@@ -205,12 +272,21 @@ function Stock() {
             <table className="custom-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr>
+                  <th style={{ width: '40px', paddingLeft: '0.75rem' }}>
+                    <input 
+                      type="checkbox"
+                      checked={filteredHistory.length > 0 && filteredHistory.every(h => selectedIds.includes(h.id))}
+                      onChange={() => handleSelectAll(filteredHistory)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </th>
                   <th>Date</th>
                   <th>Product</th>
                   <th>Type</th>
                   <th>Change</th>
                   <th>New Quantity</th>
                   <th>Notes</th>
+                  <th style={{ textAlign: 'right', paddingRight: '0.75rem' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -226,7 +302,15 @@ function Stock() {
                   }
 
                   return (
-                    <tr key={h.id}>
+                    <tr key={h.id} className={selectedIds.includes(h.id) ? 'row-selected' : ''}>
+                      <td style={{ paddingLeft: '0.75rem' }}>
+                        <input 
+                          type="checkbox"
+                          checked={selectedIds.includes(h.id)}
+                          onChange={() => handleToggleSelect(h.id)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                      </td>
                       <td>{h.date}</td>
                       <td>
                         <div>
@@ -243,8 +327,18 @@ function Stock() {
                         {prefix}{h.quantity_change}
                       </td>
                       <td style={{ fontWeight: 600 }}>{h.new_quantity}</td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={h.notes}>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={h.notes}>
                         {h.notes}
+                      </td>
+                      <td style={{ textAlign: 'right', paddingRight: '0.75rem' }}>
+                        <button 
+                          onClick={() => handleDeleteSpecific(h.id)}
+                          style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'inline-flex', padding: '0.25rem', borderRadius: '4px' }}
+                          title="Delete Log"
+                          className="btn-action-delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </td>
                     </tr>
                   );

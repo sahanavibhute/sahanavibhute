@@ -732,3 +732,17 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1.25rem;
   }
 }
+
+/* Selected row and delete button highlight */
+.row-selected {
+  background: rgba(139, 92, 246, 0.08) !important;
+}
+
+.btn-action-delete {
+  transition: all 0.2s ease;
+}
+
+.btn-action-delete:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+}

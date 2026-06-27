@@ -259,6 +259,32 @@ app.get('/api/stock/history', async (req, res) => {
   }
 });
 
+// Delete a specific stock history entry
+app.delete('/api/stock/history/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await query.run('DELETE FROM stock_history WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Stock history entry deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete multiple stock history entries
+app.post('/api/stock/history/delete-multiple', async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Invalid or empty IDs array' });
+  }
+  try {
+    const placeholders = ids.map(() => '?').join(',');
+    await query.run(`DELETE FROM stock_history WHERE id IN (${placeholders})`, ids);
+    res.json({ success: true, message: 'Stock history entries deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==========================================
 // 4. PURCHASE MANAGEMENT ENDPOINTS
 // ==========================================
