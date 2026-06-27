@@ -30,11 +30,15 @@
   font-family: var(--font-body);
 }
 
-body {
+html, body {
   background-color: var(--bg-dark);
   color: var(--text-main);
   overflow-x: hidden;
   height: 100vh;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Custom Scrollbar */
@@ -143,6 +147,7 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
   font-size: 0.95rem;
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .glass-input:focus {
@@ -161,6 +166,7 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
   font-size: 0.95rem;
   cursor: pointer;
+  width: 100%;
 }
 
 .glass-select option {
@@ -511,6 +517,12 @@ h1, h2, h3, h4, h5, h6 {
   .billing-cart-card {
     height: auto;
   }
+  .billing-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+    gap: 1.25rem;
+  }
 }
 
 .cart-items-container {
@@ -726,6 +738,9 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1.25rem;
     height: auto;
     overflow-y: visible;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   /* Form and Modal Adjustments */
@@ -785,4 +800,23 @@ h1, h2, h3, h4, h5, h6 {
 .btn-action-delete:hover {
   background: rgba(239, 68, 68, 0.15) !important;
   color: #ef4444 !important;
+}
+
+/* Compact layout for Cart items on narrow screens */
+@media (max-width: 480px) {
+  body {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .cart-item {
+    padding: 0.65rem 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .cart-item > div:first-child {
+    width: 100%;
+    margin-bottom: 0.15rem;
+  }
 }
