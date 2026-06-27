@@ -260,7 +260,7 @@ function Billing({ onRefreshNotif }) {
         </h3>
 
         {/* Customer fields */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+        <div className="cart-fields-grid">
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Customer Name</label>
             <input 
@@ -362,7 +362,7 @@ function Billing({ onRefreshNotif }) {
         </div>
 
         {/* Payment Configuration */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="cart-fields-grid" style={{ marginBottom: '1.5rem' }}>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Payment Method</label>
             <select 

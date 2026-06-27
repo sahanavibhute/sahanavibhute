@@ -284,7 +284,7 @@ function Payments({ onRefreshNotif }) {
             </div>
             <form onSubmit={handleRecordPayment}>
               <div className="modal-body">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-glass)', paddingBottom: '1rem' }}>
+                <div className="cart-fields-grid" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-glass)', paddingBottom: '1rem' }}>
                   <div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-dark)' }}>BILL NUMBER</span>
                     <h4 style={{ color: 'white' }}>{selectedSale.bill_number}</h4>
