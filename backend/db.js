@@ -1,4 +1,3 @@
-import sqlite3 from 'sqlite3';
 import pg from 'pg';
 import path from 'url';
 import { fileURLToPath } from 'url';
@@ -110,16 +109,23 @@ if (isPostgres) {
   console.log('Database connected using PostgreSQL (Cloud)');
   dbReady = initializeTables();
 } else {
-  dbReady = new Promise((resolve) => {
-    db = new sqlite3.Database(dbPath, (err) => {
-      if (err) {
-        console.error('Error opening SQLite database', err);
-        resolve();
-      } else {
-        console.log('Database connected using SQLite (Local) at', dbPath);
-        initializeTables().then(resolve);
-      }
-    });
+  dbReady = new Promise(async (resolve) => {
+    try {
+      const sqliteModule = await import('sqlite3');
+      const sqlite3 = sqliteModule.default;
+      db = new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+          console.error('Error opening SQLite database', err);
+          resolve();
+        } else {
+          console.log('Database connected using SQLite (Local) at', dbPath);
+          initializeTables().then(resolve);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to load SQLite module:', err);
+      resolve();
+    }
   });
 }
 
