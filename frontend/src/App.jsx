@@ -221,7 +221,7 @@ function App() {
     { id: 'billing', label: 'Billing POS', icon: Receipt },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'expiry', label: 'Expiry Tracker', icon: AlertTriangle },
-    { id: 'reports', label: 'Reports & Backups', icon: BarChart3 }
+    { id: 'reports', label: 'Reports', icon: BarChart3 }
   ];
 
   // Render correct component based on active tab

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Download, Printer, Database, Upload, FileText, CheckCircle } from 'lucide-react';
+import { Download, Printer, FileText } from 'lucide-react';
 
 function Reports() {
   const [reportData, setReportData] = useState({
@@ -10,16 +10,11 @@ function Reports() {
     customers: []
   });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('sales'); // 'sales', 'products', 'stock', 'backup'
+  const [activeTab, setActiveTab] = useState('sales'); // 'sales', 'products', 'stock', 'customers'
   
   // Date range filters
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-
-  // Backup states
-  const [restoreFile, setRestoreFile] = useState(null);
-  const [backupSuccess, setBackupSuccess] = useState('');
-  const [backupError, setBackupError] = useState('');
 
   const fetchReports = async () => {
     try {
@@ -141,70 +136,6 @@ function Reports() {
     window.print();
   };
 
-  // Database JSON Backup Export trigger
-  const handleExportBackup = async () => {
-    setBackupSuccess('');
-    setBackupError('');
-    try {
-      const res = await fetch('/api/backup/export');
-      if (res.ok) {
-        const json = await res.json();
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `SupplementStore_DB_Backup_${new Date().toISOString().split('T')[0]}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        document.body.removeChild(downloadAnchor);
-        setBackupSuccess('Database JSON file exported successfully!');
-      } else {
-        setBackupError('Failed to generate export backup');
-      }
-    } catch (err) {
-      setBackupError('Could not connect to database server');
-    }
-  };
-
-  // Database JSON Restore Import trigger
-  const handleRestoreBackup = async (e) => {
-    e.preventDefault();
-    setBackupSuccess('');
-    setBackupError('');
-
-    if (!restoreFile) {
-      setBackupError('Please select a JSON backup file first');
-      return;
-    }
-
-    if (!window.confirm('WARNING: Restoring the database will OVERWRITE all current inventories, transaction histories, and admin settings. Do you want to proceed?')) {
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const backupJson = JSON.parse(event.target.result);
-        const res = await fetch('/api/backup/restore', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(backupJson)
-        });
-
-        if (res.ok) {
-          setBackupSuccess('Database restored successfully! Reloading data...');
-          setRestoreFile(null);
-          fetchReports();
-        } else {
-          const errData = await res.json();
-          setBackupError(errData.error || 'Failed to restore database');
-        }
-      } catch (err) {
-        setBackupError('Invalid JSON file format. Make sure it is a valid backup file.');
-      }
-    };
-    reader.readAsText(restoreFile);
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
       
@@ -225,9 +156,6 @@ function Reports() {
           <button className={`btn ${activeTab === 'customers' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('customers')} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
             Customer Ledger
           </button>
-          <button className={`btn ${activeTab === 'backup' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('backup')} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-            <Database size={14} /> Backups
-          </button>
         </div>
 
         {/* Date Filter for Sales tab */}
@@ -241,20 +169,18 @@ function Reports() {
         )}
 
         {/* Action Export Buttons */}
-        {activeTab !== 'backup' && (
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button className="btn btn-ghost" onClick={handlePrint} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-              <Printer size={14} /> Print
-            </button>
-            <button 
-              className="btn btn-secondary" 
-              onClick={activeTab === 'sales' ? handleExportSales : activeTab === 'products' ? handleExportProducts : activeTab === 'stock' ? handleExportStock : handleExportCustomers} 
-              style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
-            >
-              <Download size={14} /> Export CSV
-            </button>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn btn-ghost" onClick={handlePrint} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+            <Printer size={14} /> Print
+          </button>
+          <button 
+            className="btn btn-secondary" 
+            onClick={activeTab === 'sales' ? handleExportSales : activeTab === 'products' ? handleExportProducts : activeTab === 'stock' ? handleExportStock : handleExportCustomers} 
+            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+          >
+            <Download size={14} /> Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Main Report Render Area */}
@@ -517,61 +443,6 @@ function Reports() {
                         })}
                       </tbody>
                     </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 4. DATABASE BACKUP & RESTORE VIEW */}
-            {activeTab === 'backup' && (
-              <div style={{ padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }} className="no-print">
-                <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Database Backup & Restoration</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Export the entire SQLite database into a portable JSON backup file, or restore data from an existing backup.</p>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                  {/* Export Box */}
-                  <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', background: 'rgba(255,255,255,0.01)' }}>
-                    <div>
-                      <h4 style={{ fontWeight: 700, fontSize: '1rem', color: 'white' }}>Export DB State</h4>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-dark)', marginTop: '0.25rem' }}>Download a complete snapshot backup of all tables.</p>
-                    </div>
-
-                    <button className="btn btn-primary" onClick={handleExportBackup} style={{ marginTop: 'auto', alignSelf: 'flex-start' }}>
-                      <Download size={16} /> Export JSON File
-                    </button>
-                  </div>
-
-                  {/* Import Box */}
-                  <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', background: 'rgba(255,255,255,0.01)' }}>
-                    <div>
-                      <h4 style={{ fontWeight: 700, fontSize: '1rem', color: 'white' }}>Restore DB State</h4>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-dark)', marginTop: '0.25rem' }}>Upload a JSON backup file to overwrite current data state.</p>
-                    </div>
-
-                    <form onSubmit={handleRestoreBackup} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      <input 
-                        type="file" 
-                        accept=".json"
-                        onChange={(e) => setRestoreFile(e.target.files[0])}
-                        style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}
-                      />
-                      <button type="submit" className="btn btn-danger" style={{ alignSelf: 'flex-start' }}>
-                        <Upload size={16} /> Upload & Restore
-                      </button>
-                    </form>
-                  </div>
-                </div>
-
-                {backupSuccess && (
-                  <div style={{ color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', justifyContent: 'center' }}>
-                    <CheckCircle size={16} /> {backupSuccess}
-                  </div>
-                )}
-                {backupError && (
-                  <div style={{ color: 'var(--danger)', fontSize: '0.9rem', textAlign: 'center' }}>
-                    {backupError}
                   </div>
                 )}
               </div>
