@@ -240,13 +240,8 @@ function Billing({ onRefreshNotif }) {
 
                   <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
-                      {p.mrp && p.mrp > p.selling_price && (
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dark)', textDecoration: 'line-through' }}>
-                          MRP ₹{p.mrp.toFixed(2)}
-                        </div>
-                      )}
                       <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--secondary)' }}>
-                        ₹{p.selling_price.toFixed(2)}
+                        ₹{(p.mrp || p.selling_price || 0).toFixed(2)}
                       </span>
                     </div>
                     <span 

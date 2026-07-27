@@ -68,9 +68,8 @@ function Products({ onRefreshNotif }) {
     setBrand(p.brand);
     setCategory(p.category);
     setBatchNumber(p.batch_number);
-    setMrp(p.mrp !== undefined && p.mrp !== null ? p.mrp : (p.selling_price || ''));
+    setMrp(p.mrp !== undefined && p.mrp !== null && p.mrp > 0 ? p.mrp : (p.selling_price || ''));
     setPurchasePrice(p.purchase_price);
-    setSellingPrice(p.selling_price);
     setQuantity(p.quantity);
     setExpiryDate(p.expiry_date);
     setMinStockLevel(p.min_stock_level);
@@ -82,14 +81,15 @@ function Products({ onRefreshNotif }) {
     e.preventDefault();
     setFormError('');
 
+    const mrpVal = parseFloat(mrp) || 0;
     const payload = {
       name,
       brand,
       category,
       batch_number: batchNumber,
-      mrp: parseFloat(mrp) || parseFloat(sellingPrice) || 0,
+      mrp: mrpVal,
       purchase_price: parseFloat(purchasePrice),
-      selling_price: parseFloat(sellingPrice),
+      selling_price: mrpVal,
       quantity: parseInt(quantity, 10),
       expiry_date: expiryDate,
       min_stock_level: parseInt(minStockLevel, 10)
@@ -214,7 +214,6 @@ function Products({ onRefreshNotif }) {
                   <th>Batch No</th>
                   <th>Purchase Cost</th>
                   <th>MRP (₹)</th>
-                  <th>Selling Price</th>
                   <th>Stock Count</th>
                   <th>Expiry Date</th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
@@ -236,8 +235,7 @@ function Products({ onRefreshNotif }) {
                       <td><span className="badge" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}>{p.category}</span></td>
                       <td><code style={{ fontSize: '0.85rem' }}>{p.batch_number}</code></td>
                       <td>₹{p.purchase_price.toFixed(2)}</td>
-                      <td style={{ color: 'var(--text-muted)' }}>₹{itemMrp.toFixed(2)}</td>
-                      <td style={{ fontWeight: 600, color: 'var(--secondary)' }}>₹{p.selling_price.toFixed(2)}</td>
+                      <td style={{ fontWeight: 600, color: 'var(--secondary)' }}>₹{itemMrp.toFixed(2)}</td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <span style={{ fontWeight: 700, color: isLowStock ? 'var(--danger)' : 'white' }}>
@@ -318,11 +316,6 @@ function Products({ onRefreshNotif }) {
                 <div className="form-group">
                   <label>MRP (₹)</label>
                   <input type="number" step="0.01" className="glass-input" value={mrp} onChange={(e) => setMrp(e.target.value)} required placeholder="Maximum Retail Price" />
-                </div>
-
-                <div className="form-group">
-                  <label>Selling Price (₹)</label>
-                  <input type="number" step="0.01" className="glass-input" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} required placeholder="Customer selling price" />
                 </div>
 
                 <div className="form-group">
