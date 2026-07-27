@@ -169,11 +169,19 @@ async function initializeTables() {
         batch_number TEXT NOT NULL,
         purchase_price REAL NOT NULL,
         selling_price REAL NOT NULL,
+        mrp REAL DEFAULT 0,
         quantity INTEGER NOT NULL DEFAULT 0,
         expiry_date TEXT NOT NULL,
         min_stock_level INTEGER NOT NULL DEFAULT 5
       )
     `));
+
+    // Migration: add mrp column if missing
+    try {
+      await query.run(translateSchema('ALTER TABLE products ADD COLUMN mrp REAL DEFAULT 0'));
+    } catch (e) {
+      // Column already exists, ignore error
+    }
 
     // 3. Stock History table
     await query.run(translateSchema(`

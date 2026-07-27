@@ -136,12 +136,13 @@ app.get('/api/products', async (req, res) => {
 
 // Add a product
 app.post('/api/products', async (req, res) => {
-  const { name, brand, category, batch_number, purchase_price, selling_price, quantity, expiry_date, min_stock_level } = req.body;
+  const { name, brand, category, batch_number, mrp, purchase_price, selling_price, quantity, expiry_date, min_stock_level } = req.body;
+  const mrpValue = parseFloat(mrp) || parseFloat(selling_price) || 0;
   try {
     const result = await query.run(
-      `INSERT INTO products (name, brand, category, batch_number, purchase_price, selling_price, quantity, expiry_date, min_stock_level)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, brand, category, batch_number, purchase_price, selling_price, quantity, expiry_date, min_stock_level]
+      `INSERT INTO products (name, brand, category, batch_number, mrp, purchase_price, selling_price, quantity, expiry_date, min_stock_level)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, brand, category, batch_number, mrpValue, purchase_price, selling_price, quantity, expiry_date, min_stock_level]
     );
 
     // Log to stock history
@@ -161,7 +162,8 @@ app.post('/api/products', async (req, res) => {
 // Update a product
 app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, brand, category, batch_number, purchase_price, selling_price, quantity, expiry_date, min_stock_level } = req.body;
+  const { name, brand, category, batch_number, mrp, purchase_price, selling_price, quantity, expiry_date, min_stock_level } = req.body;
+  const mrpValue = parseFloat(mrp) || parseFloat(selling_price) || 0;
   try {
     // Get existing product to compare quantity
     const oldProduct = await query.get('SELECT quantity FROM products WHERE id = ?', [id]);
@@ -170,9 +172,9 @@ app.put('/api/products/:id', async (req, res) => {
     }
 
     await query.run(
-      `UPDATE products SET name = ?, brand = ?, category = ?, batch_number = ?, purchase_price = ?,
+      `UPDATE products SET name = ?, brand = ?, category = ?, batch_number = ?, mrp = ?, purchase_price = ?,
        selling_price = ?, quantity = ?, expiry_date = ?, min_stock_level = ? WHERE id = ?`,
-      [name, brand, category, batch_number, purchase_price, selling_price, quantity, expiry_date, min_stock_level, id]
+      [name, brand, category, batch_number, mrpValue, purchase_price, selling_price, quantity, expiry_date, min_stock_level, id]
     );
 
     // If quantity changed, log in stock history

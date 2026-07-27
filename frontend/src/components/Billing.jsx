@@ -60,6 +60,7 @@ function Billing({ onRefreshNotif }) {
         name: product.name,
         brand: product.brand,
         batch_number: product.batch_number,
+        mrp: product.mrp || product.selling_price,
         selling_price: product.selling_price,
         purchase_price: product.purchase_price,
         available_qty: product.quantity,
@@ -91,7 +92,7 @@ function Billing({ onRefreshNotif }) {
   };
 
   // Calculations
-  const subtotal = cart.reduce((sum, item) => sum + (item.selling_price * item.quantity), 0);
+  const subtotal = cart.reduce((sum, item) => sum + ((item.mrp || item.selling_price) * item.quantity), 0);
   const discountPercent = parseFloat(discount) || 0;
   const discountVal = (subtotal * discountPercent) / 100;
   const totalAmount = Math.max(0, subtotal - discountVal);
@@ -237,6 +238,11 @@ function Billing({ onRefreshNotif }) {
 
                   <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
+                      {p.mrp && p.mrp > p.selling_price && (
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-dark)', textDecoration: 'line-through' }}>
+                          MRP ₹{p.mrp.toFixed(2)}
+                        </div>
+                      )}
                       <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--secondary)' }}>
                         ₹{p.selling_price.toFixed(2)}
                       </span>
