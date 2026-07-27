@@ -340,7 +340,7 @@ function Billing({ onRefreshNotif }) {
         {/* Pricing Summary */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            <span>Subtotal</span>
+            <span>MRP</span>
             <span>₹{subtotal.toFixed(2)}</span>
           </div>
 
@@ -478,7 +478,7 @@ function Billing({ onRefreshNotif }) {
                 <div className="receipt-divider"></div>
 
                 <div className="receipt-row">
-                  <span>Subtotal:</span>
+                  <span>MRP:</span>
                   <span>₹{(invoice.sale.total_amount + invoice.sale.discount).toFixed(2)}</span>
                 </div>
                 <div className="receipt-row">
