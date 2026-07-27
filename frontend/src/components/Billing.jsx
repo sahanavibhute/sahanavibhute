@@ -92,7 +92,8 @@ function Billing({ onRefreshNotif }) {
 
   // Calculations
   const subtotal = cart.reduce((sum, item) => sum + (item.selling_price * item.quantity), 0);
-  const discountVal = parseFloat(discount) || 0;
+  const discountPercent = parseFloat(discount) || 0;
+  const discountVal = (subtotal * discountPercent) / 100;
   const totalAmount = Math.max(0, subtotal - discountVal);
 
   // Submit sale
@@ -344,15 +345,19 @@ function Billing({ onRefreshNotif }) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            <span>Discount Amount (₹)</span>
-            <input 
-              type="number" 
-              className="glass-input" 
-              style={{ width: '80px', textAlign: 'right', padding: '0.25rem 0.5rem', fontSize: '0.85rem' }} 
-              value={discount} 
-              onChange={(e) => setDiscount(e.target.value)}
-              min="0"
-            />
+            <span>Discount (%)</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <input 
+                type="number" 
+                className="glass-input" 
+                style={{ width: '70px', textAlign: 'right', padding: '0.25rem 0.5rem', fontSize: '0.85rem' }} 
+                value={discount} 
+                onChange={(e) => setDiscount(e.target.value)}
+                min="0"
+                max="100"
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(₹{discountVal.toFixed(2)})</span>
+            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: 800, color: 'white', borderTop: '1px dashed var(--border-glass)', paddingTop: '0.75rem' }}>
