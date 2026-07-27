@@ -92,10 +92,12 @@ function Billing({ onRefreshNotif }) {
   };
 
   // Calculations
-  const subtotal = cart.reduce((sum, item) => sum + ((item.mrp || item.selling_price) * item.quantity), 0);
+  const mrpTotal = cart.reduce((sum, item) => sum + ((item.mrp || item.selling_price) * item.quantity), 0);
+  const itemTotal = cart.reduce((sum, item) => sum + (item.selling_price * item.quantity), 0);
   const discountPercent = parseFloat(discount) || 0;
-  const discountVal = (subtotal * discountPercent) / 100;
-  const totalAmount = Math.max(0, subtotal - discountVal);
+  const extraDiscountVal = (itemTotal * discountPercent) / 100;
+  const totalAmount = Math.max(0, itemTotal - extraDiscountVal);
+  const totalSavings = Math.max(0, mrpTotal - totalAmount);
 
   // Submit sale
   const handleGenerateBill = async (e) => {
@@ -110,7 +112,7 @@ function Billing({ onRefreshNotif }) {
     const payload = {
       customer_name: customerName || 'Walk-in Customer',
       customer_mobile: customerMobile || '0000000000',
-      discount: discountVal,
+      discount: (mrpTotal - totalAmount),
       total_amount: totalAmount,
       payment_method: paymentMethod,
       payment_status: paymentStatus,
@@ -345,13 +347,18 @@ function Billing({ onRefreshNotif }) {
 
         {/* Pricing Summary */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            <span>MRP</span>
-            <span>₹{subtotal.toFixed(2)}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <span>MRP Total</span>
+            <span>₹{mrpTotal.toFixed(2)}</span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            <span>Discount (%)</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+            <span>Item Price Subtotal</span>
+            <span>₹{itemTotal.toFixed(2)}</span>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <span>Additional Discount (%)</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <input 
                 type="number" 
@@ -362,9 +369,16 @@ function Billing({ onRefreshNotif }) {
                 min="0"
                 max="100"
               />
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(₹{discountVal.toFixed(2)})</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(₹{extraDiscountVal.toFixed(2)})</span>
             </div>
           </div>
+
+          {totalSavings > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--secondary)', fontWeight: 600 }}>
+              <span>Total Customer Savings</span>
+              <span>₹{totalSavings.toFixed(2)}</span>
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: 800, color: 'white', borderTop: '1px dashed var(--border-glass)', paddingTop: '0.75rem' }}>
             <span>Grand Total</span>
