@@ -128,7 +128,17 @@ app.post('/api/auth/update-security', async (req, res) => {
 app.get('/api/products', async (req, res) => {
   try {
     const products = await query.all('SELECT * FROM products ORDER BY name ASC');
-    res.json(products);
+    const normalized = products.map(p => {
+      const mrpNum = parseFloat(p.mrp);
+      const spNum = parseFloat(p.selling_price);
+      const validPrice = (!isNaN(mrpNum) && mrpNum > 0) ? mrpNum : ((!isNaN(spNum) && spNum > 0) ? spNum : 0);
+      return {
+        ...p,
+        mrp: validPrice,
+        selling_price: validPrice
+      };
+    });
+    res.json(normalized);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -138,11 +148,12 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', async (req, res) => {
   const { name, brand, category, batch_number, mrp, purchase_price, selling_price, quantity, expiry_date, min_stock_level } = req.body;
   const mrpValue = parseFloat(mrp) || parseFloat(selling_price) || 0;
+  const sellingPriceValue = parseFloat(selling_price) || mrpValue;
   try {
     const result = await query.run(
       `INSERT INTO products (name, brand, category, batch_number, mrp, purchase_price, selling_price, quantity, expiry_date, min_stock_level)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, brand, category, batch_number, mrpValue, purchase_price, selling_price, quantity, expiry_date, min_stock_level]
+      [name, brand, category, batch_number, mrpValue, purchase_price, sellingPriceValue, quantity, expiry_date, min_stock_level]
     );
 
     // Log to stock history
@@ -164,6 +175,7 @@ app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
   const { name, brand, category, batch_number, mrp, purchase_price, selling_price, quantity, expiry_date, min_stock_level } = req.body;
   const mrpValue = parseFloat(mrp) || parseFloat(selling_price) || 0;
+  const sellingPriceValue = parseFloat(selling_price) || mrpValue;
   try {
     // Get existing product to compare quantity
     const oldProduct = await query.get('SELECT quantity FROM products WHERE id = ?', [id]);
@@ -174,7 +186,7 @@ app.put('/api/products/:id', async (req, res) => {
     await query.run(
       `UPDATE products SET name = ?, brand = ?, category = ?, batch_number = ?, mrp = ?, purchase_price = ?,
        selling_price = ?, quantity = ?, expiry_date = ?, min_stock_level = ? WHERE id = ?`,
-      [name, brand, category, batch_number, mrpValue, purchase_price, selling_price, quantity, expiry_date, min_stock_level, id]
+      [name, brand, category, batch_number, mrpValue, purchase_price, sellingPriceValue, quantity, expiry_date, min_stock_level, id]
     );
 
     // If quantity changed, log in stock history

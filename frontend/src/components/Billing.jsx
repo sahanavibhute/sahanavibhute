@@ -55,14 +55,15 @@ function Billing({ onRefreshNotif }) {
       updatedCart[existingIndex].quantity += 1;
       setCart(updatedCart);
     } else {
+      const validPrice = (product.mrp && parseFloat(product.mrp) > 0) ? parseFloat(product.mrp) : parseFloat(product.selling_price || 0);
       setCart([...cart, {
         product_id: product.id,
         name: product.name,
         brand: product.brand,
         batch_number: product.batch_number,
-        mrp: product.mrp || product.selling_price,
-        selling_price: product.selling_price,
-        purchase_price: product.purchase_price,
+        mrp: validPrice,
+        selling_price: validPrice,
+        purchase_price: parseFloat(product.purchase_price || 0),
         available_qty: product.quantity,
         quantity: 1
       }]);
@@ -210,6 +211,7 @@ function Billing({ onRefreshNotif }) {
             {searchedProducts.map(p => {
               const isOutOfStock = p.quantity <= 0;
               const isLowStock = p.quantity <= p.min_stock_level;
+              const displayPrice = (p.mrp && parseFloat(p.mrp) > 0) ? parseFloat(p.mrp) : parseFloat(p.selling_price || 0);
               return (
                 <div 
                   key={p.id}
@@ -241,7 +243,7 @@ function Billing({ onRefreshNotif }) {
                   <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
                       <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--secondary)' }}>
-                        ₹{(p.mrp || p.selling_price || 0).toFixed(2)}
+                        ₹{displayPrice.toFixed(2)}
                       </span>
                     </div>
                     <span 
