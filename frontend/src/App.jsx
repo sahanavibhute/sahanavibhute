@@ -31,6 +31,8 @@ function App() {
   const [notifications, setNotifications] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [hasViewedNotifs, setHasViewedNotifs] = useState(false);
+  const [lastNotifCount, setLastNotifCount] = useState(0);
   
   // Auth Form states
   const [password, setPassword] = useState('');
@@ -64,6 +66,10 @@ function App() {
       if (res.ok) {
         const data = await res.json();
         setNotifications(data);
+        if (data.length > lastNotifCount) {
+          setHasViewedNotifs(false);
+        }
+        setLastNotifCount(data.length);
       }
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
@@ -249,7 +255,7 @@ function App() {
   };
 
   // Formatted alert list counts
-  const unreadCount = notifications.length;
+  const unreadCount = hasViewedNotifs ? 0 : notifications.length;
 
   if (!isAuthenticated) {
     return (
@@ -466,7 +472,10 @@ function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {/* Alerts Bell Button */}
             <button 
-              onClick={() => setIsNotifOpen(true)} 
+              onClick={() => {
+                setIsNotifOpen(true);
+                setHasViewedNotifs(true);
+              }} 
               style={{ position: 'relative', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '50%', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', transition: 'all 0.2s' }}
             >
               <Bell size={20} />
